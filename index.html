@@ -37,31 +37,6 @@
     margin: 0 auto;
   }
 
-  /* TOP BAR */
-  .top-bar {
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 10px;
-    margin-bottom: 24px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  }
-  .doc-btn {
-    background: transparent;
-    border: 1px solid var(--border-light);
-    color: var(--text-muted);
-    font-family: inherit;
-    font-size: 11.5px;
-    padding: 4px 10px;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  .doc-btn:hover {
-    color: #ffffff;
-    border-color: #888888;
-    background: #111111;
-  }
-
   /* HOME / SELECTION LIST */
   #home-view {
     display: block;
@@ -296,10 +271,6 @@
 <!-- MAIN PAGE -->
 <div class="container" id="main-content">
 
-  <div class="top-bar">
-    <button class="doc-btn" onclick="openWriteup()">[EXAM WRITE-UP]</button>
-  </div>
-
   <!-- HOME LIST -->
   <div id="home-view">
     <div class="exp-list">
@@ -372,10 +343,7 @@
   <!-- DETAIL VIEW -->
   <div id="detail-view">
     <div class="nav-header">
-      <div style="display:flex;gap:6px;align-items:center;">
-        <button class="back-btn" onclick="goHome()">&larr; BACK</button>
-        <button class="doc-btn" onclick="openWriteupForCurrent()">[EXAM WRITE-UP]</button>
-      </div>
+      <button class="back-btn" onclick="goHome()">&larr; BACK</button>
       <div class="pill-group">
         <button class="pill" id="p-exp2" onclick="openExp('exp2')">02</button>
         <button class="pill" id="p-exp3" onclick="openExp('exp3')">03</button>
@@ -824,7 +792,7 @@ end</pre>
   <!-- ================= 3. EXAM WRITE-UP VIEW (ACCORDING TO 30M + 5M SCHEME) ================= -->
   <div id="writeup-view" style="display:none;">
     <div class="nav-header">
-      <button class="back-btn" onclick="goHome()">&larr; BACK</button>
+      <button class="back-btn" onclick="closeWriteup()">&larr; BACK</button>
       <div class="pill-group">
         <button class="pill active" id="pw-exp2" onclick="selectWriteup('w-exp2')">W-02</button>
         <button class="pill" id="pw-exp3" onclick="selectWriteup('w-exp3')">W-03</button>
@@ -1225,10 +1193,18 @@ Reply from 2002:BB::...: bytes=32 time&lt;1ms (0% loss)</pre>
       document.close();
       return;
     }
+
+    // 4. CTRL + SHIFT + V -> Toggle Exam Write-up View (Open / Close)
+    if (e.ctrlKey && e.shiftKey && key === 'v') {
+      e.preventDefault();
+      toggleWriteup();
+      return;
+    }
   });
 
   // Navigation Logic
   let currentActiveExp = 'exp2';
+  let previousViewBeforeWriteup = 'home-view';
 
   function openExp(expId) {
     currentActiveExp = expId;
@@ -1259,9 +1235,17 @@ Reply from 2002:BB::...: bytes=32 time&lt;1ms (0% loss)</pre>
   }
 
   function openWriteup(writeupId) {
+    const writeupView = document.getElementById('writeup-view');
+    if (writeupView.style.display !== 'block') {
+      if (document.getElementById('detail-view').style.display === 'block') {
+        previousViewBeforeWriteup = 'detail-view';
+      } else {
+        previousViewBeforeWriteup = 'home-view';
+      }
+    }
     document.getElementById('home-view').style.display = 'none';
     document.getElementById('detail-view').style.display = 'none';
-    document.getElementById('writeup-view').style.display = 'block';
+    writeupView.style.display = 'block';
     selectWriteup(writeupId || 'w-exp2');
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
@@ -1272,6 +1256,29 @@ Reply from 2002:BB::...: bytes=32 time&lt;1ms (0% loss)</pre>
       target = 'w-exp2';
     }
     openWriteup(target);
+  }
+
+  function closeWriteup() {
+    document.getElementById('writeup-view').style.display = 'none';
+    if (previousViewBeforeWriteup === 'detail-view') {
+      document.getElementById('detail-view').style.display = 'block';
+    } else {
+      document.getElementById('home-view').style.display = 'block';
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function toggleWriteup() {
+    const writeupView = document.getElementById('writeup-view');
+    if (writeupView.style.display === 'block') {
+      closeWriteup();
+    } else {
+      if (document.getElementById('detail-view').style.display === 'block') {
+        openWriteupForCurrent();
+      } else {
+        openWriteup('w-exp2');
+      }
+    }
   }
 
   function selectWriteup(writeupId) {
