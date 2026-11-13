@@ -1,0 +1,8 @@
+.agents/
+work/
+*.log
+self_destruct.js
+self_destruct_listener.ps1
+*.pdf
+*.png
+skills-lock.json

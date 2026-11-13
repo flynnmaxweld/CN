@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Diagnostics</title>
+
+<style>
+  :root {
+    --bg: #000000;
+    --surface: #0a0a0a;
+    --border: #222222;
+    --border-light: #383838;
+    --text: #e5e5e5;
+    --text-muted: #737373;
+    --code-bg: #050505;
+  }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 13px;
+    line-height: 1.45;
+    padding: 24px 20px;
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  /* TOP BAR */
+  .top-bar {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sys-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #ffffff;
+  }
+  .doc-btn {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .doc-btn:hover {
+    color: #ffffff;
+    border-color: #888888;
+    background: #111111;
+  }
+
+  /* HOME / SELECTION LIST */
+  #home-view {
+    display: block;
+  }
+  .exp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .exp-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.1s ease, border-color 0.1s ease;
+  }
+  .exp-row:hover {
+    border-color: var(--border-light);
+    background: #111111;
+  }
+  .exp-name {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 13.5px;
+  }
+  .exp-sub {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 3px;
+  }
+  .exp-tag {
+    font-size: 11px;
+    color: #888888;
+    border: 1px solid #333333;
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  /* DETAIL VIEW */
+  #detail-view {
+    display: none;
+  }
+  .nav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .back-btn {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: #ffffff;
+    padding: 5px 12px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .back-btn:hover {
+    background: #ffffff;
+    color: #000000;
+  }
+  .pill-group {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 4px 9px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .pill.active {
+    background: #ffffff;
+    color: #000000;
+    font-weight: 700;
+    border-color: #ffffff;
+  }
+  .pill:hover:not(.active) {
+    border-color: var(--border-light);
+    color: #ffffff;
+  }
+
+  /* PANES */
+  .exp-pane, .writeup-pane {
+    display: none;
+  }
+  .exp-pane.active, .writeup-pane.active {
+    display: block;
+  }
+  .pane-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+  }
+  .pane-desc {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    margin-bottom: 20px;
+    line-height: 1.4;
+  }
+  .section-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 20px 0 6px 0;
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 3px;
+  }
+  pre.diagram {
+    background: var(--code-bg);
+    color: #ffffff;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 10px;
+    line-height: 1.28;
+    margin: 6px 0 16px 0;
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 6px 0 16px 0;
+    background: var(--surface);
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 7px 10px;
+    text-align: left;
+  }
+  th {
+    background: #111111;
+    color: #ffffff;
+    font-weight: 700;
+  }
+  .grid-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+    margin: 8px 0 16px 0;
+  }
+  .box-card {
+    border: 1px solid var(--border);
+    padding: 12px;
+    background: var(--surface);
+    border-radius: 4px;
+  }
+  .box-card h4 {
+    font-size: 12px;
+    color: #ffffff;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+  }
+  .box-card ul, .box-card ol {
+    margin-left: 16px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+  .box-card li {
+    margin-bottom: 4px;
+  }
+  pre.cli {
+    background: var(--code-bg);
+    color: #d4d4d4;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 10.5px;
+    line-height: 1.25;
+    margin: 4px 0;
+    white-space: pre-wrap;
+  }
+  .verify-line {
+    border: 1px solid var(--border-light);
+    padding: 10px 14px;
+    background: #080808;
+    font-size: 12px;
+    margin: 12px 0;
+    color: #cccccc;
+    border-radius: 4px;
+  }
+  .verify-line strong {
+    color: #ffffff;
+  }
+
+  /* STEALTH COVER */
+  #stealth-cover {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000000;
+    z-index: 999999;
+    padding: 24px;
+    color: #1a1a1a;
+    font-family: monospace;
+    font-size: 13px;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- STEALTH OVERLAY (Triggered by Ctrl+D, Exited by Ctrl+G) -->
+<div id="stealth-cover">_</div>
+
+<!-- MAIN PAGE -->
+<div class="container" id="main-content">
+
+  <div class="top-bar">
+    <div class="sys-title">SYSTEM PROTOCOLS // LAB ARCHIVE</div>
+    <div style="display:flex;gap:6px;">
+      <button class="doc-btn" onclick="openWriteup()">[EXAM WRITE-UP]</button>
+    </div>
+  </div>
+
+  <!-- HOME LIST -->
+  <div id="home-view">
+    <div class="exp-list">
+      <div class="exp-row" onclick="openExp('exp2')">
+        <div>
+          <div class="exp-name">EX 02: SUBNETTING (/25 MASK)</div>
+          <div class="exp-sub">Split 192.168.10.0 into 2 subnets using 1 Router, 2 Switches, and 2 PCs.</div>
+        </div>
+        <div class="exp-tag">100% GUI</div>
+      </div>
+
+      <div class="exp-row" onclick="openExp('exp3')">
+        <div>
+          <div class="exp-name">EX 03: DNS, DHCP &amp; WEB SERVER</div>
+          <div class="exp-sub">Inter-LAN routing with DNS resolution, automatic DHCP client leasing &amp; HTTP.</div>
+        </div>
+        <div class="exp-tag">100% GUI</div>
+      </div>
+
+      <div class="exp-row" onclick="openExp('exp4')">
+        <div>
+          <div class="exp-name">EX 04: OSPF DYNAMIC ROUTING</div>
+          <div class="exp-sub">3 routers connected in a triangle over serial WAN links with OSPF Area 0.</div>
+        </div>
+        <div class="exp-tag">CLI BLOCKS</div>
+      </div>
+
+      <div class="exp-row" onclick="openExp('exp5')">
+        <div>
+          <div class="exp-name">EX 05: STATIC ROUTING</div>
+          <div class="exp-sub">2 routers connected across WAN link using Packet Tracer GUI Static Route tab.</div>
+        </div>
+        <div class="exp-tag">100% GUI</div>
+      </div>
+
+      <div class="exp-row" onclick="openExp('exp6')">
+        <div>
+          <div class="exp-name">EX 06: VLANS &amp; ROUTER-ON-A-STICK</div>
+          <div class="exp-sub">VLAN 10 Student &amp; VLAN 20 Faculty segmented with 802.1Q subinterfaces.</div>
+        </div>
+        <div class="exp-tag">HYBRID</div>
+      </div>
+
+      <div class="exp-row" onclick="openExp('exp7')">
+        <div>
+          <div class="exp-name">EX 07: NAT, DYNAMIC NAT &amp; PAT</div>
+          <div class="exp-sub">Translate inside private LAN addresses to outside public web server.</div>
+        </div>
+        <div class="exp-tag">CLI BLOCKS</div>
+      </div>
+
+      <div class="exp-row" onclick="openExp('exp8')">
+        <div>
+          <div class="exp-name">EX 08: IPV6 SLAAC &amp; RIPNG</div>
+          <div class="exp-sub">Stateless address autoconfiguration and dynamic RIPng IPv6 routing.</div>
+        </div>
+        <div class="exp-tag">AUTO/CLI</div>
+      </div>
+
+      <div class="exp-row" onclick="openExp('exp9')">
+        <div>
+          <div class="exp-name">EX 09: SWITCH TOPOLOGIES</div>
+          <div class="exp-sub">Bus, Star, Ring, and Mesh topologies built with 2960 switches only.</div>
+        </div>
+        <div class="exp-tag">SWITCHES ONLY</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL VIEW -->
+  <div id="detail-view">
+    <div class="nav-header">
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="back-btn" onclick="goHome()">&larr; BACK</button>
+        <button class="doc-btn" onclick="openWriteupForCurrent()">[EXAM WRITE-UP]</button>
+      </div>
+      <div class="pill-group">
+        <button class="pill" id="p-exp2" onclick="openExp('exp2')">02</button>
+        <button class="pill" id="p-exp3" onclick="openExp('exp3')">03</button>
+        <button class="pill" id="p-exp4" onclick="openExp('exp4')">04</button>
+        <button class="pill" id="p-exp5" onclick="openExp('exp5')">05</button>
+        <button class="pill" id="p-exp6" onclick="openExp('exp6')">06</button>
+        <button class="pill" id="p-exp7" onclick="openExp('exp7')">07</button>
+        <button class="pill" id="p-exp8" onclick="openExp('exp8')">08</button>
+        <button class="pill" id="p-exp9" onclick="openExp('exp9')">09</button>
+      </div>
+    </div>
+
+    <!-- PANE 2 -->
+    <div id="exp2" class="exp-pane">
+      <div class="pane-title">EX 02: SUBNETTING (CLASS C /25)</div>
+      <div class="pane-desc">Network: 192.168.10.0/24 | Mask: 255.255.255.128 | Subnet 1: .0–.127 | Subnet 2: .128–.255</div>
+      <div class="section-label">TOPOLOGY BLUEPRINT</div>
+      <pre class="diagram">
+                        ┌────────────────────────┐
+                        │      ROUTER (2911)     │
+                        └───────────┬────────────┘
+                                    │
+           ┌────────────────────────┴────────────────────────┐
+           │ Gig0/0                                   Gig0/1 │
+           │ IP: 192.168.10.1                 IP: 192.168.10.129
+           ▼                                                 ▼
+    ┌─────────────┐                                   ┌─────────────┐
+    │  SWITCH 0   │                                   │  SWITCH 1   │
+    └──────┬──────┘                                   └──────┬──────┘
+           │ Fa0/2                                           │ Fa0/2
+           ▼                                                 ▼
+    ┌─────────────┐                                   ┌─────────────┐
+    │     PC0     │                                   │     PC1     │
+    │192.168.10.2 │                                   │192.168.10.130
+    │Mask: ...128 │                                   │Mask: ...128 │
+    │GW: .10.1    │                                   │GW: .10.129  │
+    └─────────────┘                                   └─────────────┘</pre>
+      <div class="section-label">CONFIGURATION</div>
+      <div class="grid-box">
+        <div class="box-card">
+          <h4>Router 0 (Config Tab)</h4>
+          <ul>
+            <li>Gig0/0: Port On | IP: 192.168.10.1 | Mask: 255.255.255.128</li>
+            <li>Gig0/1: Port On | IP: 192.168.10.129 | Mask: 255.255.255.128</li>
+          </ul>
+        </div>
+        <div class="box-card">
+          <h4>PCs (Desktop &gt; IP Config)</h4>
+          <ul>
+            <li>PC0: IP: 192.168.10.2 | Mask: 255.255.255.128 | GW: 192.168.10.1</li>
+            <li>PC1: IP: 192.168.10.130 | Mask: 255.255.255.128 | GW: 192.168.10.129</li>
+          </ul>
+        </div>
+      </div>
+      <div class="verify-line"><strong>Test:</strong> Alt+D to skip STP. In PC0 Command Prompt: <code>ping 192.168.10.130</code> &rarr; 0% loss.</div>
+    </div>
+
+    <!-- PANE 3 -->
+    <div id="exp3" class="exp-pane">
+      <div class="pane-title">EX 03: DNS, DHCP &amp; WEB SERVER</div>
+      <div class="pane-desc">LAN 1: 192.168.10.0/24 (Web/DNS Server + PC0) | LAN 2: 192.168.20.0/24 (DHCP Server + Laptop)</div>
+      <div class="section-label">TOPOLOGY BLUEPRINT</div>
+      <pre class="diagram">
+                        ┌────────────────────────┐
+                        │      ROUTER (2911)     │
+                        └───────────┬────────────┘
+                                    │
+           ┌────────────────────────┴────────────────────────┐
+           │ Gig0/0: 192.168.10.1             Gig0/1: 192.168.20.1
+           ▼                                                 ▼
+    ┌─────────────┐                                   ┌─────────────┐
+    │  SWITCH 0   │                                   │  SWITCH 1   │
+    └──────┬──────┘                                   └──────┬──────┘
+     ┌─────┴─────┐                                     ┌─────┴─────┐
+     ▼           ▼                                     ▼           ▼
+┌─────────┐ ┌─────────┐                           ┌─────────┐ ┌─────────┐
+│ WEB/DNS │ │   PC0   │                           │  DHCP   │ │ LAPTOP  │
+│ SERVER  │ │         │                           │ SERVER  │ │         │
+│ .10.2   │ │ .10.3   │                           │ .20.2   │ │(DHCP On)│
+└─────────┘ └─────────┘                           └─────────┘ └─────────┘</pre>
+      <div class="section-label">CONFIGURATION</div>
+      <div class="grid-box">
+        <div class="box-card">
+          <h4>Web/DNS Server (10.2)</h4>
+          <ul>
+            <li>IP: 192.168.10.2 | GW: 192.168.10.1 | DNS: 192.168.10.2</li>
+            <li>Services &gt; DNS: On &bull; Name: www.myweb.com &bull; Address: 192.168.10.2 &bull; Click Add</li>
+            <li>Services &gt; HTTP: On</li>
+          </ul>
+        </div>
+        <div class="box-card">
+          <h4>DHCP Server (20.2)</h4>
+          <ul>
+            <li>IP: 192.168.20.2 | GW: 192.168.20.1 | DNS: 192.168.10.2</li>
+            <li>Services &gt; DHCP: On &bull; GW: 192.168.20.1 &bull; DNS: 192.168.10.2 &bull; Start: 192.168.20.10 &bull; Save</li>
+          </ul>
+        </div>
+        <div class="box-card">
+          <h4>Clients</h4>
+          <ul>
+            <li>PC0: IP: 192.168.10.3 | GW: 192.168.10.1 | DNS: 192.168.10.2</li>
+            <li>Laptop: Click DHCP radio button &rarr; Auto fills IP, Mask, GW, DNS</li>
+          </ul>
+        </div>
+      </div>
+      <div class="verify-line"><strong>Test:</strong> PC0 Browser &rarr; <code>www.myweb.com</code> (opens page). Laptop CMD &rarr; <code>ping www.myweb.com</code> (0% loss).</div>
+    </div>
+
+    <!-- PANE 4 -->
+    <div id="exp4" class="exp-pane">
+      <div class="pane-title">EX 04: OSPF DYNAMIC ROUTING</div>
+      <div class="pane-desc">3 routers in triangle. WAN 1: 10.0.0.0/30 | WAN 2: 10.0.0.4/30 | WAN 3: 10.0.0.8/30. Area 0.</div>
+      <div class="section-label">TOPOLOGY BLUEPRINT</div>
+      <pre class="diagram">
+                           [PC1: 192.168.1.2]
+                                   │
+                                   ▼ Fa0/0
+                        ┌─────────────────────┐
+                        │      ROUTER 0       │
+                        │  Router-ID: 1.1.1.1 │
+                        └──────┬───────┬──────┘
+                Se0/0 [10.0.0.1]       [10.0.0.5] Se0/1
+                 (Clock: 64k)  │       │  (Clock: 64k)
+            ┌──────────────────┘       └──────────────────┐
+            ▼ Se0/0 [10.0.0.2]                            ▼ Se0/0 [10.0.0.6]
+   ┌─────────────────┐                           ┌─────────────────┐
+   │    ROUTER 1     │                           │    ROUTER 2     │
+   │Router-ID:2.2.2.2│Se0/1                 Se0/1│Router-ID:3.3.3.3│
+   └────────┬────────┴─────── WAN 3 ─────────────┴────────┬────────┘
+      Fa0/0 │         [10.0.0.9]     [10.0.0.10]    Fa0/0 │
+            ▼         (Clock: 64k)                        ▼
+   [PC2: 192.168.2.2]                            [PC3: 192.168.3.2]</pre>
+      <div class="section-label">CLI BLOCKS (COPY-PASTE)</div>
+      <div class="grid-box">
+        <div class="box-card">
+          <h4>Router 0</h4>
+          <pre class="cli">
+en
+conf t
+int fa0/0
+ ip add 192.168.1.1 255.255.255.0
+ no shut
+int se0/0
+ ip add 10.0.0.1 255.255.255.252
+ clock rate 64000
+ no shut
+int se0/1
+ ip add 10.0.0.5 255.255.255.252
+ clock rate 64000
+ no shut
+router ospf 2
+ router-id 1.1.1.1
+ network 192.168.1.0 0.0.0.255 a 0
+ network 10.0.0.0 0.0.0.3 a 0
+ network 10.0.0.4 0.0.0.3 a 0
+end</pre>
+        </div>
+        <div class="box-card">
+          <h4>Router 1</h4>
+          <pre class="cli">
+en
+conf t
+int fa0/0
+ ip add 192.168.2.1 255.255.255.0
+ no shut
+int se0/0
+ ip add 10.0.0.2 255.255.255.252
+ no shut
+int se0/1
+ ip add 10.0.0.9 255.255.255.252
+ clock rate 64000
+ no shut
+router ospf 2
+ router-id 2.2.2.2
+ network 192.168.2.0 0.0.0.255 a 0
+ network 10.0.0.0 0.0.0.3 a 0
+ network 10.0.0.8 0.0.0.3 a 0
+end</pre>
+        </div>
+        <div class="box-card">
+          <h4>Router 2</h4>
+          <pre class="cli">
+en
+conf t
+int fa0/0
+ ip add 192.168.3.1 255.255.255.0
+ no shut
+int se0/0
+ ip add 10.0.0.6 255.255.255.252
+ no shut
+int se0/1
+ ip add 10.0.0.10 255.255.255.252
+ no shut
+router ospf 2
+ router-id 3.3.3.3
+ network 192.168.3.0 0.0.0.255 a 0
+ network 10.0.0.4 0.0.0.3 a 0
+ network 10.0.0.8 0.0.0.3 a 0
+end</pre>
+        </div>
+      </div>
+      <div class="verify-line"><strong>Test:</strong> In PC1 CMD: <code>ping 192.168.3.2</code> (0% loss). Router 0 CLI: <code>show ip route</code> &rarr; shows "O" routes.</div>
+    </div>
+
+    <!-- PANE 5 -->
+    <div id="exp5" class="exp-pane">
+      <div class="pane-title">EX 05: STATIC ROUTING (100% GUI)</div>
+      <div class="pane-desc">LAN 1: 192.168.10.0/24 | LAN 2: 192.168.20.0/24 | WAN: 10.10.10.0/8 (Serial DCE)</div>
+      <div class="section-label">TOPOLOGY BLUEPRINT</div>
+      <pre class="diagram">
+   [LAN 1: 192.168.10.0/24]                                  [LAN 2: 192.168.20.0/24]
+
+      ┌────────────────┐                                        ┌────────────────┐
+      │  ROUTER 0 (R0) │                                        │  ROUTER 1 (R1) │
+      └───────┬────────┘                                        └────────┬───────┘
+    Gig0/0    │  Se0/3/0 (or Se0/0)                    Se0/3/0 (or Se0/0)│  Gig0/0
+   [.10.1]    │  [10.10.10.1]                                [10.10.10.2]│  [.20.1]
+       ┌──────┘       └────────────────── WAN ──────────────────┘        └──────┐
+       │                               (Red Cable, Clock: 64k)                  │
+       ▼                                                                        ▼
+  ┌─────────┐                                                              ┌─────────┐
+  │ Switch0 │                                                              │ Switch1 │
+  └────┬────┘                                                              └────┬────┘
+       │                                                                        │
+       ▼                                                                        ▼
+  ┌─────────┐                                                              ┌─────────┐
+  │   PC0   │                                                              │   PC2   │
+  │ [.10.2] │                                                              │ [.20.2] │
+  └─────────┘                                                              └─────────┘</pre>
+      <div class="section-label">GUI STATIC ROUTE ENTRIES</div>
+      <div class="grid-box">
+        <div class="box-card">
+          <h4>Router 0: Config &gt; Static</h4>
+          <ul>
+            <li>Network: 192.168.20.0</li>
+            <li>Mask: 255.255.255.0</li>
+            <li>Next Hop: 10.10.10.2</li>
+            <li>Click <strong>Add</strong></li>
+          </ul>
+        </div>
+        <div class="box-card">
+          <h4>Router 1: Config &gt; Static</h4>
+          <ul>
+            <li>Network: 192.168.10.0</li>
+            <li>Mask: 255.255.255.0</li>
+            <li>Next Hop: 10.10.10.1</li>
+            <li>Click <strong>Add</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="verify-line"><strong>Test:</strong> In PC0 CMD: <code>ping 192.168.20.2</code> &rarr; 0% loss.</div>
+    </div>
+
+    <!-- PANE 6 -->
+    <div id="exp6" class="exp-pane">
+      <div class="pane-title">EX 06: VLANS &amp; ROUTER-ON-A-STICK</div>
+      <div class="pane-desc">VLAN 10 Student (192.168.1.0/24) | VLAN 20 Faculty (172.16.1.0/24) | Trunk on Switch Gig0/1</div>
+      <div class="section-label">TOPOLOGY BLUEPRINT</div>
+      <pre class="diagram">
+                        ┌────────────────────────┐
+                        │      ROUTER (2911)     │
+                        │ Gig0/0.10  Gig0/0.20   │
+                        │ [.1.1]     [172.16.1.1]│
+                        └───────────┬────────────┘
+                                    │ [Trunk: Gig0/1]
+                                    ▼
+                         ┌─────────────────────┐
+                         │    SWITCH (2960)    │
+                         └───────┬──────┬──────┘
+                                 │      │
+          ┌──────────────────────┘      └──────────────────────┐
+          ▼ Fa0/1 - Fa0/2 (VLAN 10)                            ▼ Fa0/3 - Fa0/4 (VLAN 20)
+   ┌─────────────┐   ┌─────────────┐                    ┌─────────────┐   ┌─────────────┐
+   │    PC-A     │   │    PC-B     │                    │    PC-C     │   │    PC-D     │
+   │192.168.1.2  │   │192.168.1.3  │                    │172.16.1.2   │   │172.16.1.3   │
+   │GW: ...1.1   │   │GW: ...1.1   │                    │GW: ...1.1   │   │GW: ...1.1   │
+   └─────────────┘   └─────────────┘                    └─────────────┘   └─────────────┘</pre>
+      <div class="section-label">CONFIGURATION</div>
+      <div class="grid-box">
+        <div class="box-card">
+          <h4>Switch CLI (VLAN &amp; Trunk)</h4>
+          <pre class="cli">
+en
+conf t
+vlan 10
+ name student
+vlan 20
+ name faculty
+int range fa0/1 - 2
+ switchport mode access
+ switchport access vlan 10
+int range fa0/3 - 4
+ switchport mode access
+ switchport access vlan 20
+int gig0/1
+ switchport mode trunk
+end</pre>
+        </div>
+        <div class="box-card">
+          <h4>Router CLI (Subinterfaces)</h4>
+          <pre class="cli">
+en
+conf t
+int gig0/0
+ no shut
+int gig0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.1.1 255.255.255.0
+int gig0/0.20
+ encapsulation dot1Q 20
+ ip address 172.16.1.1 255.255.255.0
+end</pre>
+        </div>
+      </div>
+      <div class="verify-line"><strong>Test:</strong> PC-A pings PC-B (Intra-VLAN: OK). PC-A pings PC-C (172.16.1.2) &rarr; Inter-VLAN OK (0% loss).</div>
+    </div>
+
+    <!-- PANE 7 -->
+    <div id="exp7" class="exp-pane">
+      <div class="pane-title">EX 07: NAT, DYNAMIC NAT &amp; PAT</div>
+      <div class="pane-desc">Inside LAN: 192.168.1.0/24 | WAN link: 200.0.0.0/24 | Outside Server: 201.0.0.10</div>
+      <div class="section-label">TOPOLOGY BLUEPRINT</div>
+      <pre class="diagram">
+ [INSIDE PRIVATE LAN]              [NAT ROUTER 1]              [OUTSIDE ISP ROUTER 2]     [PUBLIC SERVER]
+ PC1 (192.168.1.10) ──┐                                                                         │
+                      ├──► [Switch] ──► Fa0/0 (inside) ──► Se0/0/0 ──────► Se0/0/0 ──► Fa0/0 ───┘
+ PC2 (192.168.1.20) ──┘                 [192.168.1.1]      [200.0.0.1]     [200.0.0.2]  [201.0.0.1]    [201.0.0.10]</pre>
+      <div class="section-label">ROUTER CONFIGURATIONS</div>
+      <div class="grid-box">
+        <div class="box-card">
+          <h4>Router 1 (NAT Router)</h4>
+          <pre class="cli">
+en
+conf t
+int fa0/0
+ ip add 192.168.1.1 255.255.255.0
+ ip nat inside
+ no shut
+int se0/0/0
+ ip add 200.0.0.1 255.255.255.0
+ ip nat outside
+ no shut
+access-list 10 permit 192.168.1.0 0.0.0.255
+ip nat inside source list 10 interface se0/0/0 overload
+ip route 201.0.0.0 255.255.255.0 200.0.0.2
+end</pre>
+        </div>
+        <div class="box-card">
+          <h4>Router 2 (ISP)</h4>
+          <pre class="cli">
+en
+conf t
+int fa0/0
+ ip add 201.0.0.1 255.255.255.0
+ no shut
+int se0/0/0
+ ip add 200.0.0.2 255.255.255.0
+ clock rate 64000
+ no shut
+ip route 200.0.0.0 255.255.255.0 200.0.0.1
+end</pre>
+        </div>
+      </div>
+      <div class="verify-line"><strong>Test:</strong> In PC1 CMD: <code>ping 201.0.0.10</code> &rarr; OK. Router 1 CLI: <code>show ip nat translations</code>.</div>
+    </div>
+
+    <!-- PANE 8 -->
+    <div id="exp8" class="exp-pane">
+      <div class="pane-title">EX 08: IPV6 SLAAC &amp; RIPNG</div>
+      <div class="pane-desc">LAN 1: 2001:AA::/64 | LAN 2: 2002:BB::/64 | Stateless Address Autoconfiguration</div>
+      <div class="section-label">TOPOLOGY BLUEPRINT</div>
+      <pre class="diagram">
+     [LAN 1: 2001:AA::/64]                                                          [LAN 2: 2002:BB::/64]
+     PC0 (Auto SLAAC) ──► Switch0 ──► Gig0/0 [2001:AA::1]              Gig0/1 [2002:BB::1] ──► Switch1 ──► PC1 (Auto SLAAC)
+                                      └───────────── Router0 (RIPng) ──────────────┘</pre>
+      <div class="section-label">CONFIGURATION</div>
+      <div class="grid-box">
+        <div class="box-card">
+          <h4>Router 0 CLI</h4>
+          <pre class="cli">
+en
+conf t
+ipv6 unicast-routing
+int gig0/0
+ ipv6 address 2001:AA::1/64
+ ipv6 rip TEST enable
+ no shut
+int gig0/1
+ ipv6 address 2002:BB::1/64
+ ipv6 rip TEST enable
+ no shut
+end</pre>
+        </div>
+        <div class="box-card">
+          <h4>PC Setup (Desktop &gt; IP Config)</h4>
+          <ul>
+            <li>Under <strong>IPv6 Configuration</strong>: Select <strong>Automatic</strong>.</li>
+            <li>PC0 and PC1 auto-assign themselves IPv6 addresses ending in EUI-64.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="verify-line"><strong>Test:</strong> In PC0 CMD: <code>ipconfig</code> &rarr; copy PC1 IPv6 &rarr; <code>ping 2002:BB:...</code> (0% loss).</div>
+    </div>
+
+    <!-- PANE 9 -->
+    <div id="exp9" class="exp-pane">
+      <div class="pane-title">EX 09: SWITCH TOPOLOGIES (NO ROUTER)</div>
+      <div class="pane-desc">Build Bus, Star, Ring, Mesh with Cisco 2960 switches only. Subnet: 192.168.1.0/24.</div>
+      <div class="section-label">4 TOPOLOGIES</div>
+      <div class="grid-box">
+        <div class="box-card">
+          <h4>Star Topology</h4>
+          <pre class="cli">
+       PC1   PC2
+        \     /
+       [Switch0]
+        /     \
+       PC3   PC4</pre>
+        </div>
+        <div class="box-card">
+          <h4>Ring Topology</h4>
+          <pre class="cli">
+     [SW1] ─── [SW2]
+       │         │
+     [SW4] ─── [SW3]</pre>
+        </div>
+        <div class="box-card">
+          <h4>Bus Topology</h4>
+          <pre class="cli">
+[SW1] ─── [SW2] ─── [SW3] ─── [SW4]</pre>
+        </div>
+        <div class="box-card">
+          <h4>Mesh Topology</h4>
+          <pre class="cli">
+     [SW1] ─── [SW2]
+        \  \ /  /
+         \  X  /
+          [SW3]</pre>
+        </div>
+      </div>
+      <div class="verify-line"><strong>IPs:</strong> PC1 (.10), PC2 (.11), PC3 (.12), PC4 (.13). Mask: 255.255.255.0. No Gateway. Ping PC1 &rarr; PC2.</div>
+    </div>
+
+  </div>
+
+  <!-- ================= 3. EXAM WRITE-UP VIEW (ACCORDING TO 30M + 5M SCHEME) ================= -->
+  <div id="writeup-view" style="display:none;">
+    <div class="nav-header">
+      <button class="back-btn" onclick="goHome()">&larr; BACK</button>
+      <div class="pill-group">
+        <button class="pill active" id="pw-exp2" onclick="selectWriteup('w-exp2')">W-02</button>
+        <button class="pill" id="pw-exp3" onclick="selectWriteup('w-exp3')">W-03</button>
+        <button class="pill" id="pw-exp4" onclick="selectWriteup('w-exp4')">W-04</button>
+        <button class="pill" id="pw-exp5" onclick="selectWriteup('w-exp5')">W-05</button>
+        <button class="pill" id="pw-exp6" onclick="selectWriteup('w-exp6')">W-06</button>
+        <button class="pill" id="pw-exp7" onclick="selectWriteup('w-exp7')">W-07</button>
+        <button class="pill" id="pw-exp8" onclick="selectWriteup('w-exp8')">W-08</button>
+        <button class="pill" id="pw-partb" onclick="selectWriteup('w-partb')">PART B (5M)</button>
+        <button class="pill" id="pw-viva" onclick="selectWriteup('w-viva')">VIVA (5M)</button>
+      </div>
+    </div>
+
+    <!-- WRITE-UP: EX 02 -->
+    <div id="w-exp2" class="writeup-pane active">
+      <div class="pane-title">PART A: EX 02 — SUBNETTING (30 MARKS)</div>
+      
+      <div class="section-label">1. AIM (2 MARKS)</div>
+      <p style="color:#d4d4d4;">To subnet a Class C network (192.168.10.0/24) using a /25 subnet mask (255.255.255.128), configure IP addresses on devices, and verify inter-subnet communication via a router in Cisco Packet Tracer.</p>
+
+      <div class="section-label">2. PROCEDURE — NETWORK STRUCTURE (4 MARKS)</div>
+      <p style="color:#a3a3a3;">Hardware Required: 1 Router (Cisco 2911), 2 Switches (Cisco 2960), 2 PCs (PC0, PC1), Copper Straight-Through cables.<br>
+      Interconnection: PC0 connected to Switch0 (Fa0/2). Switch0 connected to Router0 (Gig0/0). PC1 connected to Switch1 (Fa0/2). Switch1 connected to Router0 (Gig0/1).</p>
+
+      <div class="section-label">3. PROCEDURE — IP ADDRESSING TABLE (6 MARKS)</div>
+      <table>
+        <tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Subnet Mask</th><th>Default Gateway</th></tr>
+        <tr><td>Router0</td><td>Gig0/0</td><td>192.168.10.1</td><td>255.255.255.128</td><td>—</td></tr>
+        <tr><td>Router0</td><td>Gig0/1</td><td>192.168.10.129</td><td>255.255.255.128</td><td>—</td></tr>
+        <tr><td>PC0</td><td>FastEthernet0</td><td>192.168.10.2</td><td>255.255.255.128</td><td>192.168.10.1</td></tr>
+        <tr><td>PC1</td><td>FastEthernet0</td><td>192.168.10.130</td><td>255.255.255.128</td><td>192.168.10.129</td></tr>
+      </table>
+
+      <div class="section-label">4. PROCEDURE — NETWORK CONFIGURATION (7 MARKS)</div>
+      <ol style="margin-left:20px;color:#a3a3a3;line-height:1.6;">
+        <li>Calculate Subnets: Borrow 1 host bit (2^1 = 2 subnets). Subnet 1 range: 192.168.10.0 to 192.168.10.127. Subnet 2 range: 192.168.10.128 to 192.168.10.255.</li>
+        <li>Connect PC0 to Switch0 and PC1 to Switch1 using straight-through cables.</li>
+        <li>Configure PC0: Set static IPv4 Address to 192.168.10.2, Subnet Mask to 255.255.255.128, Default Gateway to 192.168.10.1.</li>
+        <li>Configure PC1: Set static IPv4 Address to 192.168.10.130, Subnet Mask to 255.255.255.128, Default Gateway to 192.168.10.129.</li>
+      </ol>
+
+      <div class="section-label">5. PROCEDURE — ROUTER CONFIGURATION (3 MARKS)</div>
+      <pre class="cli">
+Router# configure terminal
+Router(config)# interface gigabitethernet 0/0
+Router(config-if)# ip address 192.168.10.1 255.255.255.128
+Router(config-if)# no shutdown
+Router(config-if)# exit
+Router(config)# interface gigabitethernet 0/1
+Router(config-if)# ip address 192.168.10.129 255.255.255.128
+Router(config-if)# no shutdown
+Router(config-if)# end</pre>
+
+      <div class="section-label">6. OUTPUT AND VERIFICATION (5 MARKS)</div>
+      <pre class="cli">
+PC0> ping 192.168.10.130
+Pinging 192.168.10.130 with 32 bytes of data:
+Reply from 192.168.10.130: bytes=32 time&lt;1ms TTL=127
+Reply from 192.168.10.130: bytes=32 time&lt;1ms TTL=127
+Reply from 192.168.10.130: bytes=32 time&lt;1ms TTL=127
+Reply from 192.168.10.130: bytes=32 time&lt;1ms TTL=127
+Ping statistics for 192.168.10.130:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
+
+      <div class="section-label">7. RESULT (2 MARKS)</div>
+      <p style="color:#d4d4d4;">Thus, the Class C network 192.168.10.0/24 was successfully subnetted into two /25 subnets, router interfaces were configured, and successful inter-subnet communication was established with 0% packet loss.</p>
+    </div>
+
+    <!-- WRITE-UP: EX 03 -->
+    <div id="w-exp3" class="writeup-pane" style="display:none;">
+      <div class="pane-title">PART A: EX 03 — DNS, DHCP &amp; WEB SERVER (30 MARKS)</div>
+      
+      <div class="section-label">1. AIM (2 MARKS)</div>
+      <p style="color:#d4d4d4;">To design a LAN topology in Cisco Packet Tracer, configure DNS and DHCP services, and verify name resolution and web access using ICMP and HTTP protocols.</p>
+
+      <div class="section-label">2. PROCEDURE — NETWORK STRUCTURE (4 MARKS)</div>
+      <p style="color:#a3a3a3;">Hardware: 1 Router (2911), 2 Switches (2960), 1 Web/DNS Server, 1 DHCP Server, 1 PC, 1 Laptop.<br>
+      LAN 1 (192.168.10.0/24) connected to Router Gig0/0. LAN 2 (192.168.20.0/24) connected to Router Gig0/1.</p>
+
+      <div class="section-label">3. PROCEDURE — IP ADDRESSING TABLE (6 MARKS)</div>
+      <table>
+        <tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Subnet Mask</th><th>Default Gateway</th></tr>
+        <tr><td>Router0</td><td>Gig0/0</td><td>192.168.10.1</td><td>255.255.255.0</td><td>—</td></tr>
+        <tr><td>Router0</td><td>Gig0/1</td><td>192.168.20.1</td><td>255.255.255.0</td><td>—</td></tr>
+        <tr><td>Web/DNS Srv</td><td>Fa0</td><td>192.168.10.2</td><td>255.255.255.0</td><td>192.168.10.1</td></tr>
+        <tr><td>PC0</td><td>Fa0</td><td>192.168.10.3</td><td>255.255.255.0</td><td>192.168.10.1</td></tr>
+        <tr><td>DHCP Server</td><td>Fa0</td><td>192.168.20.2</td><td>255.255.255.0</td><td>192.168.20.1</td></tr>
+        <tr><td>Laptop</td><td>Fa0</td><td>DHCP (Auto: 192.168.20.10)</td><td>255.255.255.0</td><td>192.168.20.1</td></tr>
+      </table>
+
+      <div class="section-label">4. PROCEDURE — NETWORK CONFIGURATION (7 MARKS)</div>
+      <ol style="margin-left:20px;color:#a3a3a3;line-height:1.6;">
+        <li>Web/DNS Server: Enable DNS service, add A-record: Name <code>www.myweb.com</code> &rarr; Address <code>192.168.10.2</code>. Ensure HTTP service is ON.</li>
+        <li>DHCP Server: Set IP to 192.168.20.2. In Services &gt; DHCP, turn Service ON. Set Default Gateway to 192.168.20.1, DNS to 192.168.10.2, Start IP to 192.168.20.10. Click Save.</li>
+        <li>Client PC0: Configure static IP 192.168.10.3, Gateway 192.168.10.1, DNS 192.168.10.2.</li>
+        <li>Client Laptop: In IP Configuration, select DHCP radio button and verify IP acquisition.</li>
+      </ol>
+
+      <div class="section-label">5. PROCEDURE — ROUTER CONFIGURATION (3 MARKS)</div>
+      <pre class="cli">
+Router(config)# interface gigabitethernet 0/0
+Router(config-if)# ip address 192.168.10.1 255.255.255.0
+Router(config-if)# no shutdown
+Router(config-if)# exit
+Router(config)# interface gigabitethernet 0/1
+Router(config-if)# ip address 192.168.20.1 255.255.255.0
+Router(config-if)# no shutdown</pre>
+
+      <div class="section-label">6. OUTPUT AND VERIFICATION (5 MARKS)</div>
+      <pre class="cli">
+1. Web Browser Test on PC0:
+   URL: http://www.myweb.com
+   Status: Cisco Packet Tracer Welcome Page loaded successfully.
+2. Ping Test from Laptop to Domain:
+   Laptop> ping www.myweb.com
+   Pinging 192.168.10.2 with 32 bytes of data:
+   Reply from 192.168.10.2: bytes=32 time&lt;1ms TTL=127
+   Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
+
+      <div class="section-label">7. RESULT (2 MARKS)</div>
+      <p style="color:#d4d4d4;">Thus, the LAN topology with DNS, DHCP, and Web server was successfully simulated, and verified using HTTP browsing and ICMP ping.</p>
+    </div>
+
+    <!-- WRITE-UP: EX 04 -->
+    <div id="w-exp4" class="writeup-pane" style="display:none;">
+      <div class="pane-title">PART A: EX 04 — OSPF DYNAMIC ROUTING (30 MARKS)</div>
+      
+      <div class="section-label">1. AIM (2 MARKS)</div>
+      <p style="color:#d4d4d4;">To configure Open Shortest Path First (OSPF) dynamic routing protocol on a 3-router topology in Cisco Packet Tracer and verify inter-network connectivity.</p>
+
+      <div class="section-label">2. PROCEDURE — NETWORK STRUCTURE (4 MARKS)</div>
+      <p style="color:#a3a3a3;">Hardware: 3 Routers (Router-PT or 2911 with HWIC-2T), 3 PCs.<br>
+      Connected in a triangle via serial links: R0-R1 (10.0.0.0/30), R0-R2 (10.0.0.4/30), R1-R2 (10.0.0.8/30). Each router connects to a local LAN via FastEthernet0/0.</p>
+
+      <div class="section-label">3. PROCEDURE — IP ADDRESSING TABLE (6 MARKS)</div>
+      <table>
+        <tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Subnet Mask</th><th>OSPF Router-ID</th></tr>
+        <tr><td>Router0</td><td>Fa0/0<br>Se0/0<br>Se0/1</td><td>192.168.1.1<br>10.0.0.1<br>10.0.0.5</td><td>255.255.255.0<br>255.255.255.252<br>255.255.255.252</td><td>1.1.1.1</td></tr>
+        <tr><td>Router1</td><td>Fa0/0<br>Se0/0<br>Se0/1</td><td>192.168.2.1<br>10.0.0.2<br>10.0.0.9</td><td>255.255.255.0<br>255.255.255.252<br>255.255.255.252</td><td>2.2.2.2</td></tr>
+        <tr><td>Router2</td><td>Fa0/0<br>Se0/0<br>Se0/1</td><td>192.168.3.1<br>10.0.0.6<br>10.0.0.10</td><td>255.255.255.0<br>255.255.255.252<br>255.255.255.252</td><td>3.3.3.3</td></tr>
+        <tr><td>PC1 / PC2 / PC3</td><td>Fa0</td><td>192.168.1.2 / .2.2 / .3.2</td><td>255.255.255.0</td><td>GW: .1.1 / .2.1 / .3.1</td></tr>
+      </table>
+
+      <div class="section-label">4. PROCEDURE — NETWORK CONFIGURATION (7 MARKS)</div>
+      <ol style="margin-left:20px;color:#a3a3a3;line-height:1.6;">
+        <li>Connect 3 routers in a closed loop using Serial DCE cables. Set clock rate to 64000 on DCE interfaces.</li>
+        <li>Configure IP addresses on all FastEthernet and Serial interfaces and bring them UP with <code>no shutdown</code>.</li>
+        <li>Configure PC1 (192.168.1.2), PC2 (192.168.2.2), and PC3 (192.168.3.2) with their respective gateways.</li>
+      </ol>
+
+      <div class="section-label">5. PROCEDURE — ROUTER CONFIGURATION (3 MARKS)</div>
+      <pre class="cli">
+Router0(config)# router ospf 2
+Router0(config-router)# router-id 1.1.1.1
+Router0(config-router)# network 192.168.1.0 0.0.0.255 area 0
+Router0(config-router)# network 10.0.0.0 0.0.0.3 area 0
+Router0(config-router)# network 10.0.0.4 0.0.0.3 area 0
+(Repeat on Router1 for 192.168.2.0, 10.0.0.0, 10.0.0.8; and Router2 for 192.168.3.0, 10.0.0.4, 10.0.0.8)</pre>
+
+      <div class="section-label">6. OUTPUT AND VERIFICATION (5 MARKS)</div>
+      <pre class="cli">
+Router0# show ip route
+O    192.168.2.0/24 [110/65] via 10.0.0.2, Serial0/0
+O    192.168.3.0/24 [110/65] via 10.0.0.6, Serial0/1
+
+PC1> ping 192.168.3.2
+Reply from 192.168.3.2: bytes=32 time=2ms TTL=126
+Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
+
+      <div class="section-label">7. RESULT (2 MARKS)</div>
+      <p style="color:#d4d4d4;">Thus, OSPF routing was successfully configured on all three routers, dynamic routing table updates were verified, and end-to-end communication was established with 0% loss.</p>
+    </div>
+
+    <!-- WRITE-UP: EX 05 -->
+    <div id="w-exp5" class="writeup-pane" style="display:none;">
+      <div class="pane-title">PART A: EX 05 — STATIC ROUTING (30 MARKS)</div>
+      
+      <div class="section-label">1. AIM (2 MARKS)</div>
+      <p style="color:#d4d4d4;">To design and configure a network topology of two LANs connected via a WAN serial link and establish communication between them using Static Routing in Cisco Packet Tracer.</p>
+
+      <div class="section-label">2. PROCEDURE — NETWORK STRUCTURE (4 MARKS)</div>
+      <p style="color:#a3a3a3;">Hardware: 2 Routers (2911 with HWIC-2T), 2 Switches (2960), 2 PCs.<br>
+      LAN A (192.168.10.0/24) connected to Router0 Gig0/0. LAN B (192.168.20.0/24) connected to Router1 Gig0/0. Router0 and Router1 interconnected via Serial 0/3/0 (10.10.10.0/8).</p>
+
+      <div class="section-label">3. PROCEDURE — IP ADDRESSING TABLE (6 MARKS)</div>
+      <table>
+        <tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Subnet Mask</th><th>Default Gateway</th></tr>
+        <tr><td>Router0</td><td>Gig0/0<br>Se0/3/0</td><td>192.168.10.1<br>10.10.10.1</td><td>255.255.255.0<br>255.0.0.0</td><td>—<br>(Clock: 64000)</td></tr>
+        <tr><td>Router1</td><td>Gig0/0<br>Se0/3/0</td><td>192.168.20.1<br>10.10.10.2</td><td>255.255.255.0<br>255.0.0.0</td><td>—</td></tr>
+        <tr><td>PC0 (LAN A)</td><td>Fa0</td><td>192.168.10.2</td><td>255.255.255.0</td><td>192.168.10.1</td></tr>
+        <tr><td>PC2 (LAN B)</td><td>Fa0</td><td>192.168.20.2</td><td>255.255.255.0</td><td>192.168.20.1</td></tr>
+      </table>
+
+      <div class="section-label">4. PROCEDURE — NETWORK CONFIGURATION (7 MARKS)</div>
+      <ol style="margin-left:20px;color:#a3a3a3;line-height:1.6;">
+        <li>Connect PC0 to Switch0 and Switch0 to Router0 Gig0/0 using straight-through cables.</li>
+        <li>Connect PC2 to Switch1 and Switch1 to Router1 Gig0/0 using straight-through cables.</li>
+        <li>Connect Router0 Se0/3/0 to Router1 Se0/3/0 using a Serial DCE cable.</li>
+        <li>Configure static IP, subnet mask, and default gateway on PC0 and PC2 as per addressing table.</li>
+      </ol>
+
+      <div class="section-label">5. PROCEDURE — ROUTER CONFIGURATION (3 MARKS)</div>
+      <pre class="cli">
+Router0:
+Router(config)# ip route 192.168.20.0 255.255.255.0 10.10.10.2
+Router1:
+Router(config)# ip route 192.168.10.0 255.255.255.0 10.10.10.1</pre>
+
+      <div class="section-label">6. OUTPUT AND VERIFICATION (5 MARKS)</div>
+      <pre class="cli">
+PC0> ping 192.168.20.2
+Pinging 192.168.20.2 with 32 bytes of data:
+Reply from 192.168.20.2: bytes=32 time&lt;1ms TTL=126
+Reply from 192.168.20.2: bytes=32 time&lt;1ms TTL=126
+Reply from 192.168.20.2: bytes=32 time&lt;1ms TTL=126
+Reply from 192.168.20.2: bytes=32 time&lt;1ms TTL=126
+Ping statistics for 192.168.20.2:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
+
+      <div class="section-label">7. RESULT (2 MARKS)</div>
+      <p style="color:#d4d4d4;">Thus, the network topology for static routing was successfully designed and configured, and connectivity between LAN A and LAN B was verified with 0% loss.</p>
+    </div>
+
+    <!-- WRITE-UP: EX 06 -->
+    <div id="w-exp6" class="writeup-pane" style="display:none;">
+      <div class="pane-title">PART A: EX 06 — VLANS &amp; ROUTER-ON-A-STICK (30 MARKS)</div>
+      <div class="section-label">1. AIM (2 MARKS)</div>
+      <p style="color:#d4d4d4;">To configure Intra-VLAN and Inter-VLAN routing using VLANs and Router-on-a-Stick (IEEE 802.1Q encapsulation) in Cisco Packet Tracer.</p>
+      <div class="section-label">2. PROCEDURE — NETWORK STRUCTURE (4 MARKS)</div>
+      <p style="color:#a3a3a3;">Hardware: 1 Router (2911), 1 Switch (2960), 4 PCs.<br>Switch Fa0/1-2 assigned to VLAN 10 (Student). Switch Fa0/3-4 assigned to VLAN 20 (Faculty). Switch Gig0/1 configured as Trunk connected to Router Gig0/0.</p>
+      <div class="section-label">3. PROCEDURE — IP ADDRESSING TABLE (6 MARKS)</div>
+      <table>
+        <tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Subnet Mask</th><th>Default Gateway</th></tr>
+        <tr><td>Router</td><td>Gig0/0.10<br>Gig0/0.20</td><td>192.168.1.1<br>172.16.1.1</td><td>255.255.255.0<br>255.255.255.0</td><td>—</td></tr>
+        <tr><td>PC-A / PC-B (VLAN 10)</td><td>Fa0</td><td>192.168.1.2 / .1.3</td><td>255.255.255.0</td><td>192.168.1.1</td></tr>
+        <tr><td>PC-C / PC-D (VLAN 20)</td><td>Fa0</td><td>172.16.1.2 / .1.3</td><td>255.255.255.0</td><td>172.16.1.1</td></tr>
+      </table>
+      <div class="section-label">4. PROCEDURE — NETWORK CONFIGURATION (7 MARKS)</div>
+      <ol style="margin-left:20px;color:#a3a3a3;line-height:1.6;">
+        <li>On Switch: Create VLAN 10 (name student) and VLAN 20 (name faculty).</li>
+        <li>Assign Fa0/1-2 to VLAN 10: <code>switchport mode access</code> &bull; <code>switchport access vlan 10</code>.</li>
+        <li>Assign Fa0/3-4 to VLAN 20: <code>switchport mode access</code> &bull; <code>switchport access vlan 20</code>.</li>
+        <li>Configure trunk link: <code>interface gig0/1</code> &bull; <code>switchport mode trunk</code>.</li>
+      </ol>
+      <div class="section-label">5. PROCEDURE — ROUTER CONFIGURATION (3 MARKS)</div>
+      <pre class="cli">
+Router(config)# interface gig0/0
+Router(config-if)# no shutdown
+Router(config)# interface gig0/0.10
+Router(config-subif)# encapsulation dot1Q 10
+Router(config-subif)# ip address 192.168.1.1 255.255.255.0
+Router(config)# interface gig0/0.20
+Router(config-subif)# encapsulation dot1Q 20
+Router(config-subif)# ip address 172.16.1.1 255.255.255.0</pre>
+      <div class="section-label">6. OUTPUT AND VERIFICATION (5 MARKS)</div>
+      <pre class="cli">
+PC-A> ping 172.16.1.2
+Reply from 172.16.1.2: bytes=32 time&lt;1ms TTL=127
+Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
+      <div class="section-label">7. RESULT (2 MARKS)</div>
+      <p style="color:#d4d4d4;">Thus, Intra-VLAN and Inter-VLAN routing was successfully configured using the Router-on-a-Stick method with 0% loss.</p>
+    </div>
+
+    <!-- WRITE-UP: EX 07 -->
+    <div id="w-exp7" class="writeup-pane" style="display:none;">
+      <div class="pane-title">PART A: EX 07 — NAT, DYNAMIC NAT &amp; PAT (30 MARKS)</div>
+      <div class="section-label">1. AIM (2 MARKS)</div>
+      <p style="color:#d4d4d4;">To configure static NAT, dynamic NAT, and PAT (NAT overload) on a Cisco router and verify translation of inside private addresses to outside public addresses.</p>
+      <div class="section-label">2. PROCEDURE — NETWORK STRUCTURE (4 MARKS)</div>
+      <p style="color:#a3a3a3;">Hardware: 2 Routers (R1 NAT Router, R2 ISP Router), 1 Switch, 2 PCs, 1 Public Server.<br>R1 inside Fa0/0 (192.168.1.1), outside Se0/0/0 (200.0.0.1). R2 outside Se0/0/0 (200.0.0.2), Server on Fa0/0 (201.0.0.10).</p>
+      <div class="section-label">3. PROCEDURE — IP ADDRESSING TABLE (6 MARKS)</div>
+      <table>
+        <tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Subnet Mask</th><th>NAT Role</th></tr>
+        <tr><td>R1</td><td>Fa0/0<br>Se0/0/0</td><td>192.168.1.1<br>200.0.0.1</td><td>255.255.255.0<br>255.255.255.0</td><td>Inside<br>Outside</td></tr>
+        <tr><td>R2</td><td>Se0/0/0<br>Fa0/0</td><td>200.0.0.2<br>201.0.0.1</td><td>255.255.255.0<br>255.255.255.0</td><td>ISP Outside</td></tr>
+        <tr><td>Server</td><td>NIC</td><td>201.0.0.10</td><td>255.255.255.0</td><td>Public Destination</td></tr>
+      </table>
+      <div class="section-label">4. PROCEDURE — NETWORK CONFIGURATION (7 MARKS)</div>
+      <ol style="margin-left:20px;color:#a3a3a3;line-height:1.6;">
+        <li>Create standard ACL 10 to permit inside network: <code>access-list 10 permit 192.168.1.0 0.0.0.255</code>.</li>
+        <li>Mark interfaces: On Fa0/0 enter <code>ip nat inside</code>; on Se0/0/0 enter <code>ip nat outside</code>.</li>
+        <li>Enable PAT overload: <code>ip nat inside source list 10 interface serial0/0/0 overload</code>.</li>
+        <li>Add default static route on R1 pointing to R2: <code>ip route 201.0.0.0 255.255.255.0 200.0.0.2</code>.</li>
+      </ol>
+      <div class="section-label">5. PROCEDURE — ROUTER CONFIGURATION (3 MARKS)</div>
+      <pre class="cli">
+R1(config)# access-list 10 permit 192.168.1.0 0.0.0.255
+R1(config)# ip nat inside source list 10 interface serial0/0/0 overload
+R1(config)# ip route 201.0.0.0 255.255.255.0 200.0.0.2</pre>
+      <div class="section-label">6. OUTPUT AND VERIFICATION (5 MARKS)</div>
+      <pre class="cli">
+PC1> ping 201.0.0.10
+Reply from 201.0.0.10: bytes=32 time&lt;1ms TTL=126 (0% loss)
+R1# show ip nat translations
+Pro Inside global      Inside local       Outside local      Outside global
+icmp 200.0.0.1:1       192.168.1.10:1     201.0.0.10:1       201.0.0.10:1</pre>
+      <div class="section-label">7. RESULT (2 MARKS)</div>
+      <p style="color:#d4d4d4;">Thus, NAT and PAT were successfully configured, private inside addresses were translated to public addresses, and connectivity was verified.</p>
+    </div>
+
+    <!-- WRITE-UP: EX 08 -->
+    <div id="w-exp8" class="writeup-pane" style="display:none;">
+      <div class="pane-title">PART A: EX 08 — IPV6 SLAAC &amp; RIPNG (30 MARKS)</div>
+      <div class="section-label">1. AIM (2 MARKS)</div>
+      <p style="color:#d4d4d4;">To configure IPv6 addressing using Stateless Address Autoconfiguration (SLAAC) and enable RIPng dynamic routing in Cisco Packet Tracer.</p>
+      <div class="section-label">2. PROCEDURE — NETWORK STRUCTURE (4 MARKS)</div>
+      <p style="color:#a3a3a3;">Hardware: 1 Router (2911), 2 Switches (2960), 2 PCs.<br>Router Gig0/0 connects to LAN 1 (2001:AA::/64); Router Gig0/1 connects to LAN 2 (2002:BB::/64).</p>
+      <div class="section-label">3. PROCEDURE — IP ADDRESSING TABLE (6 MARKS)</div>
+      <table>
+        <tr><th>Device</th><th>Interface</th><th>IPv6 Address</th><th>Prefix</th><th>Assignment</th></tr>
+        <tr><td>Router0</td><td>Gig0/0<br>Gig0/1</td><td>2001:AA::1<br>2002:BB::1</td><td>/64<br>/64</td><td>Manual<br>Manual</td></tr>
+        <tr><td>PC0 / PC1</td><td>NIC</td><td>Auto (SLAAC)</td><td>/64</td><td>EUI-64 Stateless</td></tr>
+      </table>
+      <div class="section-label">4. PROCEDURE — NETWORK CONFIGURATION (7 MARKS)</div>
+      <ol style="margin-left:20px;color:#a3a3a3;line-height:1.6;">
+        <li>Enable IPv6 unicast routing globally on the router: <code>ipv6 unicast-routing</code>.</li>
+        <li>Assign IPv6 addresses to Gig0/0 and Gig0/1 interfaces and enable RIPng with <code>ipv6 rip TEST enable</code>.</li>
+        <li>On PCs: Open Desktop &gt; IP Configuration, select Automatic under IPv6 Configuration.</li>
+      </ol>
+      <div class="section-label">5. PROCEDURE — ROUTER CONFIGURATION (3 MARKS)</div>
+      <pre class="cli">
+Router(config)# ipv6 unicast-routing
+Router(config)# interface gigabitethernet 0/0
+Router(config-if)# ipv6 address 2001:AA::1/64
+Router(config-if)# ipv6 rip TEST enable
+Router(config-if)# no shutdown
+Router(config)# interface gigabitethernet 0/1
+Router(config-if)# ipv6 address 2002:BB::1/64
+Router(config-if)# ipv6 rip TEST enable
+Router(config-if)# no shutdown</pre>
+      <div class="section-label">6. OUTPUT AND VERIFICATION (5 MARKS)</div>
+      <pre class="cli">
+PC0> ipconfig
+IPv6 Address: 2001:AA::2E0:A3FF:FED7:D7A1
+PC0> ping 2002:BB::...
+Reply from 2002:BB::...: bytes=32 time&lt;1ms (0% loss)</pre>
+      <div class="section-label">7. RESULT (2 MARKS)</div>
+      <p style="color:#d4d4d4;">Thus, IPv6 addressing via SLAAC and dynamic RIPng routing were successfully configured and verified.</p>
+    </div>
+
+    <!-- WRITE-UP: PART B TOPOLOGIES -->
+    <div id="w-partb" class="writeup-pane" style="display:none;">
+      <div class="pane-title">PART B: NETWORK TOPOLOGY DESIGN (5 MARKS)</div>
+      <p style="color:#a3a3a3;margin-bottom:12px;">Build using Cisco 2960 switches only. No Router or Gateway required. All devices in subnet <code>192.168.1.0/24</code>.</p>
+      
+      <div class="section-label">1. AIM (1 MARK)</div>
+      <p style="color:#d4d4d4;">To design and build basic network topologies (Star / Bus / Ring / Mesh) using Cisco 2960 switches, assign static IP addresses to PCs, and verify connectivity using ICMP ping.</p>
+
+      <div class="section-label">2. TOPOLOGY INTERCONNECTION (1 MARK)</div>
+      <p style="color:#a3a3a3;">
+      &bull; <strong>Star Topology:</strong> 1 central switch (Switch0), 4 PCs directly connected to ports Fa0/1, Fa0/2, Fa0/3, Fa0/4 using straight-through cables.<br>
+      &bull; <strong>Ring Topology:</strong> 4 switches connected in a closed circle (SW1-SW2-SW3-SW4-SW1) with 1 PC connected to each switch.<br>
+      &bull; <strong>Bus Topology:</strong> 4 switches connected linearly in series (SW1-SW2-SW3-SW4) with 1 PC on each switch.<br>
+      &bull; <strong>Mesh Topology:</strong> 3 switches interconnected with redundant links to all other switches, each attached to 1 PC.</p>
+
+      <div class="section-label">3. IP ADDRESSING &amp; DEVICE CONFIGURATION (1 MARK)</div>
+      <table>
+        <tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Subnet Mask</th><th>Default Gateway</th></tr>
+        <tr><td>PC1</td><td>FastEthernet0</td><td>192.168.1.10</td><td>255.255.255.0</td><td>(Leave Blank)</td></tr>
+        <tr><td>PC2</td><td>FastEthernet0</td><td>192.168.1.11</td><td>255.255.255.0</td><td>(Leave Blank)</td></tr>
+        <tr><td>PC3</td><td>FastEthernet0</td><td>192.168.1.12</td><td>255.255.255.0</td><td>(Leave Blank)</td></tr>
+        <tr><td>PC4</td><td>FastEthernet0</td><td>192.168.1.13</td><td>255.255.255.0</td><td>(Leave Blank)</td></tr>
+      </table>
+
+      <div class="section-label">4. OUTPUT / NETWORK DIAGRAM (1 MARK)</div>
+      <pre class="cli">
+From PC1: ping 192.168.1.11
+Reply from 192.168.1.11: bytes=32 time&lt;1ms TTL=128
+Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
+
+      <div class="section-label">5. RESULT (1 MARK)</div>
+      <p style="color:#d4d4d4;">Thus, the network topology was successfully constructed and verified using Layer-2 Ethernet switches with 100% success rate.</p>
+    </div>
+
+    <!-- WRITE-UP: VIVA VOCE -->
+    <div id="w-viva" class="writeup-pane" style="display:none;">
+      <div class="pane-title">VIVA VOCE QUESTIONS &amp; ANSWERS (5 MARKS)</div>
+      
+      <div class="box-card" style="margin-bottom:8px;">
+        <h4 style="color:#ffffff;">1. What is the function of Default Gateway?</h4>
+        <p style="color:#a3a3a3;">It is the router interface IP on the local subnet that forwards packets destined for remote or external networks.</p>
+      </div>
+
+      <div class="box-card" style="margin-bottom:8px;">
+        <h4 style="color:#ffffff;">2. Difference between Switch and Router?</h4>
+        <p style="color:#a3a3a3;">Switch operates at Layer 2 (Data Link) forwarding frames using MAC addresses within a LAN. Router operates at Layer 3 (Network) forwarding packets using IP addresses between different networks.</p>
+      </div>
+
+      <div class="box-card" style="margin-bottom:8px;">
+        <h4 style="color:#ffffff;">3. What is Subnetting and why is it used?</h4>
+        <p style="color:#a3a3a3;">Dividing a single large network into smaller logical broadcast domains. It conserves IP addresses, reduces broadcast traffic, and enhances network security.</p>
+      </div>
+
+      <div class="box-card" style="margin-bottom:8px;">
+        <h4 style="color:#ffffff;">4. What is Router-on-a-Stick?</h4>
+        <p style="color:#a3a3a3;">A method where a single physical router interface carries traffic for multiple VLANs using subinterfaces configured with IEEE 802.1Q encapsulation over a trunk link.</p>
+      </div>
+
+      <div class="box-card" style="margin-bottom:8px;">
+        <h4 style="color:#ffffff;">5. What is the difference between Static and Dynamic Routing?</h4>
+        <p style="color:#a3a3a3;">Static routing requires manual route entry by the administrator and does not adapt to failures. Dynamic routing (OSPF, RIP) automatically discovers network routes and recalculates alternative paths upon link failures.</p>
+      </div>
+
+      <div class="box-card" style="margin-bottom:8px;">
+        <h4 style="color:#ffffff;">6. Why does the first ping packet time out?</h4>
+        <p style="color:#a3a3a3;">Because of ARP (Address Resolution Protocol) latency—the sending device pauses to broadcast an ARP request to resolve the destination's MAC address.</p>
+      </div>
+
+      <div class="box-card" style="margin-bottom:8px;">
+        <h4 style="color:#ffffff;">7. What is NAT and PAT?</h4>
+        <p style="color:#a3a3a3;">NAT (Network Address Translation) converts private IP addresses to public IPs. PAT (Port Address Translation / NAT Overload) maps multiple private IPs to a single public IP using unique TCP/UDP port numbers.</p>
+      </div>
+
+      <div class="box-card" style="margin-bottom:8px;">
+        <h4 style="color:#ffffff;">8. What is SLAAC in IPv6?</h4>
+        <p style="color:#a3a3a3;">Stateless Address Autoconfiguration—allows an IPv6 host to automatically generate its own global unicast IPv6 address using prefix announcements from the local router without requiring a DHCP server.</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- KEYBOARD SHORTCUTS & STEALTH / SELF-DESTRUCT LOGIC -->
+<script>
+  // Check stealth on initial load or refresh
+  (function initStealth() {
+    if (localStorage.getItem('cn_stealth') === 'true') {
+      document.getElementById('stealth-cover').style.display = 'block';
+      document.getElementById('main-content').style.display = 'none';
+    }
+  })();
+
+  // Global Keyboard Listener
+  window.addEventListener('keydown', function(e) {
+    const key = e.key.toLowerCase();
+
+    // 1. CTRL + D -> Stealth Hide (Persistent across refresh)
+    if (e.ctrlKey && key === 'd') {
+      e.preventDefault();
+      localStorage.setItem('cn_stealth', 'true');
+      document.getElementById('stealth-cover').style.display = 'block';
+      document.getElementById('main-content').style.display = 'none';
+      return;
+    }
+
+    // 2. CTRL + G -> Restore from Stealth
+    if (e.ctrlKey && key === 'g') {
+      e.preventDefault();
+      localStorage.removeItem('cn_stealth');
+      document.getElementById('stealth-cover').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      return;
+    }
+
+    // 3. CTRL + L -> Complete Self-Destruction (Permanently Delete Files from Disk)
+    if (e.ctrlKey && key === 'l') {
+      e.preventDefault();
+      
+      // Clear all local storage & session storage
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch(err) {}
+
+      // Trigger local background listener to permanently delete the files from disk
+      try {
+        fetch('http://127.0.0.1:9876/destruct', { mode: 'no-cors' })
+          .finally(() => {
+            window.location.replace("about:blank");
+          });
+      } catch(err) {
+        window.location.replace("about:blank");
+      }
+
+      // Immediate visual wipe
+      document.open();
+      document.write("");
+      document.close();
+      return;
+    }
+  });
+
+  // Navigation Logic
+  let currentActiveExp = 'exp2';
+
+  function openExp(expId) {
+    currentActiveExp = expId;
+    document.getElementById('home-view').style.display = 'none';
+    document.getElementById('writeup-view').style.display = 'none';
+    document.getElementById('detail-view').style.display = 'block';
+
+    const panes = document.querySelectorAll('.exp-pane');
+    panes.forEach(p => p.classList.remove('active'));
+
+    const pills = document.querySelectorAll('#detail-view .pill');
+    pills.forEach(p => p.classList.remove('active'));
+
+    const targetPane = document.getElementById(expId);
+    if (targetPane) targetPane.classList.add('active');
+
+    const targetPill = document.getElementById('p-' + expId);
+    if (targetPill) targetPill.classList.add('active');
+
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function goHome() {
+    document.getElementById('detail-view').style.display = 'none';
+    document.getElementById('writeup-view').style.display = 'none';
+    document.getElementById('home-view').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function openWriteup(writeupId) {
+    document.getElementById('home-view').style.display = 'none';
+    document.getElementById('detail-view').style.display = 'none';
+    document.getElementById('writeup-view').style.display = 'block';
+    selectWriteup(writeupId || 'w-exp2');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function openWriteupForCurrent() {
+    let target = 'w-' + currentActiveExp;
+    if (currentActiveExp === 'exp9') {
+      target = 'w-partb';
+    }
+    openWriteup(target);
+  }
+
+  function selectWriteup(writeupId) {
+    const panes = document.querySelectorAll('.writeup-pane');
+    panes.forEach(p => {
+      p.classList.remove('active');
+      p.style.display = 'none';
+    });
+
+    const pills = document.querySelectorAll('#writeup-view .pill');
+    pills.forEach(p => p.classList.remove('active'));
+
+    const targetPane = document.getElementById(writeupId);
+    if (targetPane) {
+      targetPane.classList.add('active');
+      targetPane.style.display = 'block';
+    }
+
+    const targetPill = document.getElementById('p' + writeupId);
+    if (targetPill) targetPill.classList.add('active');
+
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+</script>
+
+</body>
+</html>

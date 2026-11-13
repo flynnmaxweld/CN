@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Experiment 3: LAN Topology with DNS, DHCP &amp; HTTP</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
+    background-color: #ffffff;
+    line-height: 1.3;
+    font-size: 9.3pt;
+    margin: 0;
+    padding: 0;
+  }
+  .header {
+    text-align: center;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+  }
+  h1 {
+    font-size: 14.5pt;
+    margin: 0 0 2px 0;
+    color: #1e3a8a;
+    font-weight: 800;
+  }
+  .sub-tag {
+    font-size: 8.5pt;
+    color: #475569;
+  }
+  .badge {
+    background: #dbeafe;
+    color: #1d4ed8;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 7.5pt;
+  }
+  .section-title {
+    font-size: 9.3pt;
+    font-weight: 700;
+    color: #1e3a8a;
+    background: #f1f5f9;
+    border-left: 4px solid #2563eb;
+    padding: 2px 6px;
+    margin: 5px 0 4px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  pre.diagram {
+    background: #090d16;
+    color: #f1f5f9;
+    padding: 6px 8px;
+    border-radius: 5px;
+    font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+    font-size: 6.8pt;
+    line-height: 1.15;
+    letter-spacing: -0.15px;
+    margin: 4px 0 5px 0;
+    white-space: pre;
+    overflow: hidden;
+  }
+  .grid-2 {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .card {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    padding: 5px 8px;
+  }
+  .card h3 {
+    margin: 0 0 3px 0;
+    font-size: 9pt;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 2px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.3pt;
+    margin: 3px 0;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 3px 6px;
+    text-align: left;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #1e293b;
+    font-weight: 600;
+  }
+  .highlight {
+    font-weight: 700;
+    color: #2563eb;
+  }
+  .tag-success {
+    background: #dcfce7;
+    color: #15803d;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .steps-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-size: 8.4pt;
+  }
+  .steps-box ol {
+    margin: 2px 0 0 14px;
+    padding: 0;
+  }
+  .steps-box li {
+    margin-bottom: 2px;
+  }
+  .page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ================= PAGE 1 ================= -->
+  <div class="header">
+    <h1>Experiment 3: LAN Topology with DNS, DHCP &amp; Web Server</h1>
+    <div class="sub-tag">
+      <span class="badge">FAST LAB MANUAL</span> &bull; 
+      <strong>Goal:</strong> Interconnect 2 LANs via Router &bull; DNS Name Resolution &bull; Dynamic IP via DHCP &bull; HTTP Web Browsing
+    </div>
+  </div>
+
+  <div class="section-title">1. Complete Network Architecture Diagram</div>
+  <pre class="diagram">
+==================================================================================================================
+                                    EXPERIMENT 3: COMPLETE TOPOLOGY BLUEPRINT
+==================================================================================================================
+
+                                            ┌─────────────────────────┐
+                                            │      ROUTER (2911)      │
+                                            │  Config > INTERFACE Tab │
+                                            └────────────┬────────────┘
+                                                         │
+                     ┌───────────────────────────────────┴───────────────────────────────────┐
+                     │                                                                       │
+           Gig0/0 Port (LAN 1)                                                     Gig0/1 Port (LAN 2)
+         ┌───────────────────────────────┐                                       ┌───────────────────────────────┐
+         │ [✓] Port Status: On           │                                       │ [✓] Port Status: On           │
+         │ IP:   192.168.10.1            │                                       │ IP:   192.168.20.1            │
+         │ Mask: 255.255.255.0           │                                       │ Mask: 255.255.255.0           │
+         └───────────────┬───────────────┘                                       └───────────────┬───────────────┘
+                         │                                                                       │
+                         ▼                                                                       ▼
+                 ┌───────────────┐                                                       ┌───────────────┐
+                 │ Switch0(2960) │                                                       │ Switch1(2960) │
+                 └───────┬───────┘                                                       └───────┬───────┘
+         ┌───────────────┼───────────────┐                                       ┌───────────────┴───────────────┐
+         │               │               │                                       │                               │
+         ▼               ▼               ▼                                       ▼                               ▼
+ ┌───────────────┐┌──────────────┐┌──────────────┐                       ┌───────────────┐               ┌───────────────┐
+ │  DNS SERVER   ││  WEB SERVER  ││     PC0      │                       │  DHCP SERVER  │               │    LAPTOP0    │
+ ├───────────────┤├──────────────┤├──────────────┤                       ├───────────────┤               ├───────────────┤
+ │IP:192.168.10.2││IP:192.168.10.4│IP:192.168.10.3│                       │IP:192.168.20.2│               │[●] DHCP Mode  │
+ │GW:192.168.10.1││GW:192.168.10.1│GW:192.168.10.1│                       │GW:192.168.20.1│               │               │
+ │Mask: ...255.0 ││Mask: ...255.0 │DNS: ...10.2   │                       │Mask: ...255.0 │               │Auto gets:     │
+ │               ││              │Mask: ...255.0 │                       │               │               │IP: ...20.10+  │
+ │Services > DNS:││Services>HTTP:│               │                       │Services>DHCP: │               │GW: ...20.1    │
+ │[✓] DNS: ON    ││[✓] HTTP: ON  │Used to browse:│                       │[✓] Service: ON│               │DNS:...10.2    │
+ │www.myweb.com  ││(Serves Cisco │http://        │                       │Pool: Net2     │               │               │
+ │= 192.168.10.4 ││default page) │www.myweb.com  │                       │Start: ...20.10│               │               │
+ └───────────────┘└──────────────┘└──────────────┘                       └───────────────┘               └───────────────┘
+==================================================================================================================</pre>
+
+  <div class="section-title">2. Device Addressing &amp; Configuration Table</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Device</th>
+        <th>Interface / Service</th>
+        <th>IP Address</th>
+        <th>Subnet Mask</th>
+        <th>Default Gateway</th>
+        <th>DNS Server</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Router0</strong></td>
+        <td>Gig0/0 (LAN 1)<br>Gig0/1 (LAN 2)</td>
+        <td>192.168.10.1<br>192.168.20.1</td>
+        <td>255.255.255.0<br>255.255.255.0</td>
+        <td>—<br>—</td>
+        <td>—<br>—</td>
+      </tr>
+      <tr>
+        <td><strong>DNS Server</strong></td>
+        <td>Desktop &rarr; IP Config<br><em>Services &rarr; DNS (ON)</em></td>
+        <td>192.168.10.2</td>
+        <td>255.255.255.0</td>
+        <td>192.168.10.1</td>
+        <td>192.168.10.2<br><em>Name: www.myweb.com &rarr; 192.168.10.4</em></td>
+      </tr>
+      <tr>
+        <td><strong>Web Server</strong></td>
+        <td>Desktop &rarr; IP Config<br><em>Services &rarr; HTTP (ON)</em></td>
+        <td>192.168.10.4</td>
+        <td>255.255.255.0</td>
+        <td>192.168.10.1</td>
+        <td>192.168.10.2</td>
+      </tr>
+      <tr>
+        <td><strong>PC0 (Client)</strong></td>
+        <td>Desktop &rarr; IP Config</td>
+        <td>192.168.10.3</td>
+        <td>255.255.255.0</td>
+        <td>192.168.10.1</td>
+        <td>192.168.10.2</td>
+      </tr>
+      <tr>
+        <td><strong>DHCP Server</strong></td>
+        <td>Desktop &rarr; IP Config<br><em>Services &rarr; DHCP (ON)</em></td>
+        <td>192.168.20.2</td>
+        <td>255.255.255.0</td>
+        <td>192.168.20.1</td>
+        <td>192.168.10.2<br><em>Start IP: 192.168.20.10 | GW: 192.168.20.1</em></td>
+      </tr>
+      <tr>
+        <td><strong>Laptop0</strong></td>
+        <td>Desktop &rarr; IP Config</td>
+        <td colspan="4" style="color: #16a34a; font-weight: 700;">Select [●] DHCP &rarr; Automatically gets IP (192.168.20.10), GW &amp; DNS</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">3. Fast 4-Minute Execution (No CLI Needed!)</div>
+  <div class="steps-box">
+    <ol>
+      <li><strong>Connect Devices:</strong> Use <em>Lightning Bolt</em> (Auto cable): Connect DNS Server, Web Server, PC0 &rarr; Switch0 &rarr; Router Gig0/0. Connect DHCP Server, Laptop0 &rarr; Switch1 &rarr; Router Gig0/1.</li>
+      <li><strong>Router GUI Setup:</strong> Click Router0 &rarr; <strong>Config</strong> tab:
+        <ul>
+          <li><em>Gig0/0</em>: Check <strong>[✓] On</strong> &bull; IP: <code>192.168.10.1</code> &bull; Mask: <code>255.255.255.0</code></li>
+          <li><em>Gig0/1</em>: Check <strong>[✓] On</strong> &bull; IP: <code>192.168.20.1</code> &bull; Mask: <code>255.255.255.0</code></li>
+        </ul>
+      </li>
+      <li><strong>Configure Servers:</strong>
+        <ul>
+          <li><strong>DNS Server:</strong> Set IP <code>192.168.10.2</code>, GW <code>192.168.10.1</code>. Go to <strong>Services &rarr; DNS</strong>: Turn <strong>ON</strong>. Name: <code>www.myweb.com</code>, Address: <code>192.168.10.4</code> &rarr; click <strong>Add</strong>.</li>
+          <li><strong>Web Server:</strong> Set IP <code>192.168.10.4</code>, GW <code>192.168.10.1</code>. Go to <strong>Services &rarr; HTTP</strong>: Ensure HTTP is <strong>ON</strong>.</li>
+          <li><strong>DHCP Server:</strong> Set IP <code>192.168.20.2</code>, GW <code>192.168.20.1</code>. Go to <strong>Services &rarr; DHCP</strong>: Turn <strong>ON</strong>. Set Default GW: <code>192.168.20.1</code>, DNS Server: <code>192.168.10.2</code>, Start IP: <code>192.168.20.10</code> &rarr; click <strong>Save</strong>.</li>
+        </ul>
+      </li>
+      <li><strong>Configure Clients:</strong>
+        <ul>
+          <li><strong>PC0:</strong> IP <code>192.168.10.3</code>, GW <code>192.168.10.1</code>, DNS <code>192.168.10.2</code>.</li>
+          <li><strong>Laptop0:</strong> Open <em>IP Configuration</em> &rarr; click <strong>[●] DHCP</strong> radio button &rarr; verify "DHCP request successful!".</li>
+        </ul>
+      </li>
+      <li><strong>Fast-Forward:</strong> Press <strong>Alt + D</strong> twice to turn all port lights green immediately.</li>
+    </ol>
+  </div>
+
+  <!-- ================= PAGE 2 ================= -->
+  <div class="page-break"></div>
+
+  <div class="section-title">4. Verification &amp; Observation Table (100% Successful)</div>
+  <table>
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Activity Performed</th>
+        <th>Test Method / Destination</th>
+        <th>Observed Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Configure IP on PC0</td>
+        <td>Set IP: 192.168.10.3, GW: 192.168.10.1, DNS: 192.168.10.2</td>
+        <td><span class="tag-success">Configured</span></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Configure Router Interfaces</td>
+        <td>Gig0/0 (192.168.10.1) &amp; Gig0/1 (192.168.20.1)</td>
+        <td><span class="tag-success">Ports UP &amp; Active</span></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Configure DNS Server</td>
+        <td>Record: www.myweb.com &rarr; 192.168.10.4</td>
+        <td><span class="tag-success">A-Record Added</span></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Configure Web Server HTTP</td>
+        <td>HTTP Service turned ON</td>
+        <td><span class="tag-success">Active / Serving</span></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Configure DHCP Server</td>
+        <td>Pool Net2 (Start: 192.168.20.10, GW: 192.168.20.1)</td>
+        <td><span class="tag-success">DHCP Pool Active</span></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Obtain IP on Laptop0</td>
+        <td>Desktop &rarr; IP Config &rarr; Select DHCP</td>
+        <td><span class="tag-success">Successful (192.168.20.10)</span></td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>Ping to Web Server IP</td>
+        <td>PC0 &gt; Command Prompt &gt; <code>ping 192.168.10.4</code></td>
+        <td><span class="tag-success">Reply Received (0% loss)</span></td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td>Ping to DNS Server IP</td>
+        <td>PC0 &gt; Command Prompt &gt; <code>ping 192.168.10.2</code></td>
+        <td><span class="tag-success">Reply Received (0% loss)</span></td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>Ping using Domain Name</td>
+        <td>PC0 &gt; Command Prompt &gt; <code>ping www.myweb.com</code></td>
+        <td><span class="tag-success">Resolved &amp; Replied (0% loss)</span></td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td>Access Web Page in Browser</td>
+        <td>PC0 &gt; Web Browser &gt; <code>http://www.myweb.com</code></td>
+        <td><span class="tag-success">Cisco Webpage Displayed</span></td>
+      </tr>
+      <tr>
+        <td>11</td>
+        <td>Ping from Laptop0 to Web Server</td>
+        <td>Laptop0 &gt; Command Prompt &gt; <code>ping 192.168.10.4</code></td>
+        <td><span class="tag-success">Successful Inter-LAN Ping</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">5. Terminal &amp; Web Output Proof (For Lab Record Screenshots)</div>
+  <pre class="diagram" style="background: #000; color: #4ade80; font-size: 7.6pt; line-height: 1.22; margin: 3px 0 6px 0;">
+PC0> ping www.myweb.com
+Pinging 192.168.10.4 with 32 bytes of data:
+Reply from 192.168.10.4: bytes=32 time&lt;1ms TTL=128
+Reply from 192.168.10.4: bytes=32 time&lt;1ms TTL=128
+Reply from 192.168.10.4: bytes=32 time&lt;1ms TTL=128
+Reply from 192.168.10.4: bytes=32 time&lt;1ms TTL=128
+Ping statistics for 192.168.10.4:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
+
+Web Browser URL: http://www.myweb.com
+Result: "Welcome to Cisco Packet Tracer. Opening doors to new opportunities."</pre>
+
+  <div class="section-title">6. Solved Viva Voce Questions (Pages 8–9 of Manual)</div>
+  <table style="font-size: 8.2pt;">
+    <thead>
+      <tr>
+        <th style="width: 32%;">Viva Question</th>
+        <th>Answer for Exam / Viva</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. Purpose of DNS server in a network?</strong></td>
+        <td>DNS (Domain Name System) translates human-readable domain names (e.g., <code>www.myweb.com</code>) into machine-readable IP addresses (e.g., <code>192.168.10.4</code>), eliminating the need for users to remember numerical IPs.</td>
+      </tr>
+      <tr>
+        <td><strong>2. Function of a DHCP server?</strong></td>
+        <td>DHCP (Dynamic Host Configuration Protocol) automatically assigns IP addresses, subnet masks, default gateways, and DNS server addresses to client devices dynamically, preventing manual IP configuration errors and IP conflicts.</td>
+      </tr>
+      <tr>
+        <td><strong>3. Why is a router used in this experiment?</strong></td>
+        <td>To connect two different logical subnets/networks (<code>192.168.10.0/24</code> and <code>192.168.20.0/24</code>) and route packets between them at Network Layer 3. Without a router, devices in LAN 1 cannot communicate with LAN 2.</td>
+      </tr>
+      <tr>
+        <td><strong>4. Difference between a Hub and a Switch?</strong></td>
+        <td>
+          &bull; <strong>Hub:</strong> Layer 1 device, broadcasts incoming data to all ports (creates single collision domain), half-duplex.<br>
+          &bull; <strong>Switch:</strong> Layer 2 device, uses MAC address table to forward frames directly to target port (separate collision domain per port), full-duplex.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>5. Which protocol tests connectivity between devices and how?</strong></td>
+        <td><strong>ICMP (Internet Control Message Protocol)</strong> using the <code>ping</code> utility. It sends an <em>ICMP Echo Request</em> packet to the destination device, and the destination responds with an <em>ICMP Echo Reply</em>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
+
