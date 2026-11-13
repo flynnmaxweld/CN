@@ -25,14 +25,15 @@
   body {
     background-color: var(--bg);
     color: var(--text);
-    font-family: "Courier New", Courier, monospace;
-    font-size: 13px;
-    line-height: 1.45;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.5;
     padding: 24px 20px;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
   .container {
-    max-width: 920px;
+    max-width: 960px;
     margin: 0 auto;
   }
 
@@ -42,22 +43,16 @@
     padding-bottom: 10px;
     margin-bottom: 24px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
-  }
-  .sys-title {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: #ffffff;
   }
   .doc-btn {
     background: transparent;
     border: 1px solid var(--border-light);
     color: var(--text-muted);
     font-family: inherit;
-    font-size: 11px;
-    padding: 3px 8px;
+    font-size: 11.5px;
+    padding: 4px 10px;
     border-radius: 3px;
     cursor: pointer;
   }
@@ -200,9 +195,9 @@
     padding: 12px 14px;
     border: 1px solid var(--border);
     border-radius: 4px;
-    font-family: inherit;
-    font-size: 10px;
-    line-height: 1.28;
+    font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
+    font-size: 11.5px;
+    line-height: 1.35;
     margin: 6px 0 16px 0;
     overflow-x: auto;
   }
@@ -256,9 +251,9 @@
     padding: 8px 10px;
     border: 1px solid var(--border);
     border-radius: 3px;
-    font-family: inherit;
-    font-size: 10.5px;
-    line-height: 1.25;
+    font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
+    font-size: 11.5px;
+    line-height: 1.3;
     margin: 4px 0;
     white-space: pre-wrap;
   }
@@ -302,10 +297,7 @@
 <div class="container" id="main-content">
 
   <div class="top-bar">
-    <div class="sys-title">SYSTEM PROTOCOLS // LAB ARCHIVE</div>
-    <div style="display:flex;gap:6px;">
-      <button class="doc-btn" onclick="openWriteup()">[EXAM WRITE-UP]</button>
-    </div>
+    <button class="doc-btn" onclick="openWriteup()">[EXAM WRITE-UP]</button>
   </div>
 
   <!-- HOME LIST -->
@@ -841,14 +833,12 @@ end</pre>
         <button class="pill" id="pw-exp6" onclick="selectWriteup('w-exp6')">W-06</button>
         <button class="pill" id="pw-exp7" onclick="selectWriteup('w-exp7')">W-07</button>
         <button class="pill" id="pw-exp8" onclick="selectWriteup('w-exp8')">W-08</button>
-        <button class="pill" id="pw-partb" onclick="selectWriteup('w-partb')">PART B (5M)</button>
-        <button class="pill" id="pw-viva" onclick="selectWriteup('w-viva')">VIVA (5M)</button>
       </div>
     </div>
 
     <!-- WRITE-UP: EX 02 -->
     <div id="w-exp2" class="writeup-pane active">
-      <div class="pane-title">PART A: EX 02 — SUBNETTING (30 MARKS)</div>
+      <div class="pane-title">EX 02 — SUBNETTING (30 MARKS)</div>
       
       <div class="section-label">1. AIM (2 MARKS)</div>
       <p style="color:#d4d4d4;">To subnet a Class C network (192.168.10.0/24) using a /25 subnet mask (255.255.255.128), configure IP addresses on devices, and verify inter-subnet communication via a router in Cisco Packet Tracer.</p>
@@ -903,7 +893,7 @@ Ping statistics for 192.168.10.130:
 
     <!-- WRITE-UP: EX 03 -->
     <div id="w-exp3" class="writeup-pane" style="display:none;">
-      <div class="pane-title">PART A: EX 03 — DNS, DHCP &amp; WEB SERVER (30 MARKS)</div>
+      <div class="pane-title">EX 03 — DNS, DHCP &amp; WEB SERVER (30 MARKS)</div>
       
       <div class="section-label">1. AIM (2 MARKS)</div>
       <p style="color:#d4d4d4;">To design a LAN topology in Cisco Packet Tracer, configure DNS and DHCP services, and verify name resolution and web access using ICMP and HTTP protocols.</p>
@@ -958,7 +948,7 @@ Router(config-if)# no shutdown</pre>
 
     <!-- WRITE-UP: EX 04 -->
     <div id="w-exp4" class="writeup-pane" style="display:none;">
-      <div class="pane-title">PART A: EX 04 — OSPF DYNAMIC ROUTING (30 MARKS)</div>
+      <div class="pane-title">EX 04 — OSPF DYNAMIC ROUTING (30 MARKS)</div>
       
       <div class="section-label">1. AIM (2 MARKS)</div>
       <p style="color:#d4d4d4;">To configure Open Shortest Path First (OSPF) dynamic routing protocol on a 3-router topology in Cisco Packet Tracer and verify inter-network connectivity.</p>
@@ -1008,7 +998,7 @@ Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
 
     <!-- WRITE-UP: EX 05 -->
     <div id="w-exp5" class="writeup-pane" style="display:none;">
-      <div class="pane-title">PART A: EX 05 — STATIC ROUTING (30 MARKS)</div>
+      <div class="pane-title">EX 05 — STATIC ROUTING (30 MARKS)</div>
       
       <div class="section-label">1. AIM (2 MARKS)</div>
       <p style="color:#d4d4d4;">To design and configure a network topology of two LANs connected via a WAN serial link and establish communication between them using Static Routing in Cisco Packet Tracer.</p>
@@ -1058,7 +1048,7 @@ Ping statistics for 192.168.20.2:
 
     <!-- WRITE-UP: EX 06 -->
     <div id="w-exp6" class="writeup-pane" style="display:none;">
-      <div class="pane-title">PART A: EX 06 — VLANS &amp; ROUTER-ON-A-STICK (30 MARKS)</div>
+      <div class="pane-title">EX 06 — VLANS &amp; ROUTER-ON-A-STICK (30 MARKS)</div>
       <div class="section-label">1. AIM (2 MARKS)</div>
       <p style="color:#d4d4d4;">To configure Intra-VLAN and Inter-VLAN routing using VLANs and Router-on-a-Stick (IEEE 802.1Q encapsulation) in Cisco Packet Tracer.</p>
       <div class="section-label">2. PROCEDURE — NETWORK STRUCTURE (4 MARKS)</div>
@@ -1098,7 +1088,7 @@ Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
 
     <!-- WRITE-UP: EX 07 -->
     <div id="w-exp7" class="writeup-pane" style="display:none;">
-      <div class="pane-title">PART A: EX 07 — NAT, DYNAMIC NAT &amp; PAT (30 MARKS)</div>
+      <div class="pane-title">EX 07 — NAT, DYNAMIC NAT &amp; PAT (30 MARKS)</div>
       <div class="section-label">1. AIM (2 MARKS)</div>
       <p style="color:#d4d4d4;">To configure static NAT, dynamic NAT, and PAT (NAT overload) on a Cisco router and verify translation of inside private addresses to outside public addresses.</p>
       <div class="section-label">2. PROCEDURE — NETWORK STRUCTURE (4 MARKS)</div>
@@ -1135,7 +1125,7 @@ icmp 200.0.0.1:1       192.168.1.10:1     201.0.0.10:1       201.0.0.10:1</pre>
 
     <!-- WRITE-UP: EX 08 -->
     <div id="w-exp8" class="writeup-pane" style="display:none;">
-      <div class="pane-title">PART A: EX 08 — IPV6 SLAAC &amp; RIPNG (30 MARKS)</div>
+      <div class="pane-title">EX 08 — IPV6 SLAAC &amp; RIPNG (30 MARKS)</div>
       <div class="section-label">1. AIM (2 MARKS)</div>
       <p style="color:#d4d4d4;">To configure IPv6 addressing using Stateless Address Autoconfiguration (SLAAC) and enable RIPng dynamic routing in Cisco Packet Tracer.</p>
       <div class="section-label">2. PROCEDURE — NETWORK STRUCTURE (4 MARKS)</div>
@@ -1171,85 +1161,6 @@ PC0> ping 2002:BB::...
 Reply from 2002:BB::...: bytes=32 time&lt;1ms (0% loss)</pre>
       <div class="section-label">7. RESULT (2 MARKS)</div>
       <p style="color:#d4d4d4;">Thus, IPv6 addressing via SLAAC and dynamic RIPng routing were successfully configured and verified.</p>
-    </div>
-
-    <!-- WRITE-UP: PART B TOPOLOGIES -->
-    <div id="w-partb" class="writeup-pane" style="display:none;">
-      <div class="pane-title">PART B: NETWORK TOPOLOGY DESIGN (5 MARKS)</div>
-      <p style="color:#a3a3a3;margin-bottom:12px;">Build using Cisco 2960 switches only. No Router or Gateway required. All devices in subnet <code>192.168.1.0/24</code>.</p>
-      
-      <div class="section-label">1. AIM (1 MARK)</div>
-      <p style="color:#d4d4d4;">To design and build basic network topologies (Star / Bus / Ring / Mesh) using Cisco 2960 switches, assign static IP addresses to PCs, and verify connectivity using ICMP ping.</p>
-
-      <div class="section-label">2. TOPOLOGY INTERCONNECTION (1 MARK)</div>
-      <p style="color:#a3a3a3;">
-      &bull; <strong>Star Topology:</strong> 1 central switch (Switch0), 4 PCs directly connected to ports Fa0/1, Fa0/2, Fa0/3, Fa0/4 using straight-through cables.<br>
-      &bull; <strong>Ring Topology:</strong> 4 switches connected in a closed circle (SW1-SW2-SW3-SW4-SW1) with 1 PC connected to each switch.<br>
-      &bull; <strong>Bus Topology:</strong> 4 switches connected linearly in series (SW1-SW2-SW3-SW4) with 1 PC on each switch.<br>
-      &bull; <strong>Mesh Topology:</strong> 3 switches interconnected with redundant links to all other switches, each attached to 1 PC.</p>
-
-      <div class="section-label">3. IP ADDRESSING &amp; DEVICE CONFIGURATION (1 MARK)</div>
-      <table>
-        <tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Subnet Mask</th><th>Default Gateway</th></tr>
-        <tr><td>PC1</td><td>FastEthernet0</td><td>192.168.1.10</td><td>255.255.255.0</td><td>(Leave Blank)</td></tr>
-        <tr><td>PC2</td><td>FastEthernet0</td><td>192.168.1.11</td><td>255.255.255.0</td><td>(Leave Blank)</td></tr>
-        <tr><td>PC3</td><td>FastEthernet0</td><td>192.168.1.12</td><td>255.255.255.0</td><td>(Leave Blank)</td></tr>
-        <tr><td>PC4</td><td>FastEthernet0</td><td>192.168.1.13</td><td>255.255.255.0</td><td>(Leave Blank)</td></tr>
-      </table>
-
-      <div class="section-label">4. OUTPUT / NETWORK DIAGRAM (1 MARK)</div>
-      <pre class="cli">
-From PC1: ping 192.168.1.11
-Reply from 192.168.1.11: bytes=32 time&lt;1ms TTL=128
-Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
-
-      <div class="section-label">5. RESULT (1 MARK)</div>
-      <p style="color:#d4d4d4;">Thus, the network topology was successfully constructed and verified using Layer-2 Ethernet switches with 100% success rate.</p>
-    </div>
-
-    <!-- WRITE-UP: VIVA VOCE -->
-    <div id="w-viva" class="writeup-pane" style="display:none;">
-      <div class="pane-title">VIVA VOCE QUESTIONS &amp; ANSWERS (5 MARKS)</div>
-      
-      <div class="box-card" style="margin-bottom:8px;">
-        <h4 style="color:#ffffff;">1. What is the function of Default Gateway?</h4>
-        <p style="color:#a3a3a3;">It is the router interface IP on the local subnet that forwards packets destined for remote or external networks.</p>
-      </div>
-
-      <div class="box-card" style="margin-bottom:8px;">
-        <h4 style="color:#ffffff;">2. Difference between Switch and Router?</h4>
-        <p style="color:#a3a3a3;">Switch operates at Layer 2 (Data Link) forwarding frames using MAC addresses within a LAN. Router operates at Layer 3 (Network) forwarding packets using IP addresses between different networks.</p>
-      </div>
-
-      <div class="box-card" style="margin-bottom:8px;">
-        <h4 style="color:#ffffff;">3. What is Subnetting and why is it used?</h4>
-        <p style="color:#a3a3a3;">Dividing a single large network into smaller logical broadcast domains. It conserves IP addresses, reduces broadcast traffic, and enhances network security.</p>
-      </div>
-
-      <div class="box-card" style="margin-bottom:8px;">
-        <h4 style="color:#ffffff;">4. What is Router-on-a-Stick?</h4>
-        <p style="color:#a3a3a3;">A method where a single physical router interface carries traffic for multiple VLANs using subinterfaces configured with IEEE 802.1Q encapsulation over a trunk link.</p>
-      </div>
-
-      <div class="box-card" style="margin-bottom:8px;">
-        <h4 style="color:#ffffff;">5. What is the difference between Static and Dynamic Routing?</h4>
-        <p style="color:#a3a3a3;">Static routing requires manual route entry by the administrator and does not adapt to failures. Dynamic routing (OSPF, RIP) automatically discovers network routes and recalculates alternative paths upon link failures.</p>
-      </div>
-
-      <div class="box-card" style="margin-bottom:8px;">
-        <h4 style="color:#ffffff;">6. Why does the first ping packet time out?</h4>
-        <p style="color:#a3a3a3;">Because of ARP (Address Resolution Protocol) latency—the sending device pauses to broadcast an ARP request to resolve the destination's MAC address.</p>
-      </div>
-
-      <div class="box-card" style="margin-bottom:8px;">
-        <h4 style="color:#ffffff;">7. What is NAT and PAT?</h4>
-        <p style="color:#a3a3a3;">NAT (Network Address Translation) converts private IP addresses to public IPs. PAT (Port Address Translation / NAT Overload) maps multiple private IPs to a single public IP using unique TCP/UDP port numbers.</p>
-      </div>
-
-      <div class="box-card" style="margin-bottom:8px;">
-        <h4 style="color:#ffffff;">8. What is SLAAC in IPv6?</h4>
-        <p style="color:#a3a3a3;">Stateless Address Autoconfiguration—allows an IPv6 host to automatically generate its own global unicast IPv6 address using prefix announcements from the local router without requiring a DHCP server.</p>
-      </div>
     </div>
 
   </div>
@@ -1357,8 +1268,8 @@ Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
 
   function openWriteupForCurrent() {
     let target = 'w-' + currentActiveExp;
-    if (currentActiveExp === 'exp9') {
-      target = 'w-partb';
+    if (!document.getElementById(target)) {
+      target = 'w-exp2';
     }
     openWriteup(target);
   }
